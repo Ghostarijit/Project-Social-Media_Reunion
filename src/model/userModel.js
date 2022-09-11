@@ -1,38 +1,73 @@
 const mongoose = require('mongoose');
 
-
-const userSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        enum: ["Mr", "Mrs", "Miss"],
-        required: true
-    },
-    name: {
-        type: String,
-        required: true
-    },
-    phone: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    email: {
-        require: true,
-        type: String,
-        unique: true
-    },
-    password: {
-        require: true,
-        type: String,
-
-    },
-    address: {
-        street: { type: String },
-        city: { type: String },
-        pincode: { type: String }
-    },
-
-}, { timestamps: true });
+const ObjectId = mongoose.Schema.Types.ObjectId
 
 
-module.exports = mongoose.model('userers', userSchema)
+const UserSchema = new mongoose.Schema(
+    {
+        username: {
+            type: String,
+            require: true,
+            min: 3,
+            max: 20,
+            unique: true,
+        },
+        email: {
+            type: String,
+            required: true,
+            max: 50,
+            unique: true,
+        },
+        password: {
+            type: String,
+            required: true,
+            min: 6,
+        },
+        profilePicture: {
+            type: String,
+            default: "",
+        },
+        coverPicture: {
+            type: String,
+            default: "",
+        },
+        followers: {
+            
+            type: Number,
+            
+        },
+        followings: {
+           
+            type: Number
+          
+        },
+        isAdmin: {
+            type: Boolean,
+            default: false,
+        },
+        desc: {
+            type: String,
+            max: 50,
+        },
+        city: {
+            type: String,
+            max: 50,
+        },
+        from: {
+            type: String,
+            max: 50,
+        },
+        relationship: {
+            type: String,
+            enum: ["Single", "complicated", "married"],
+        },
+        isDeleted: {
+            type: Boolean,
+            default: false
+
+        }
+    },
+    { timestamps: true }
+);
+
+module.exports = mongoose.model("User", UserSchema);
