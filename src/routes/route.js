@@ -26,7 +26,7 @@ router.put("/api/unfollow/:userId/:followingID",middleWare.validateToken, follow
 
 router.post("/login", loginController.loginUser)
 
-router.post("/api/posts", post.createPost)
+router.post("/api/posts",middleWare.validateToken, post.createPost)
 
 router.post("/api/like/:userId/:likedID",middleWare.validateToken, likes.Like)
 
