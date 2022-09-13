@@ -13,11 +13,6 @@ const likes = require("../controller/likeController")
 
 
 
-
-
-
-
-
 router.post("/api/follow/:userId/:followingID",middleWare.validateToken, follow.followers)
 
 router.get("/Users/:userId", user.Getuser)
