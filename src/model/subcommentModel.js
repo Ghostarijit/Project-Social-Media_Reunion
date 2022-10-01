@@ -1,22 +1,21 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Schema.Types.ObjectId
 
-const likeSchema = new mongoose.Schema(
+const subcommentSchema = new mongoose.Schema(
     {
+        commentId: {
+            required: true,
+            type: ObjectId,
+            ref: 'comment'
+        },
         userId: {
             required: true,
             type: ObjectId,
             ref: 'User'
         },
-        likedID: {
-            required: true,
-            type: ObjectId,
-            ref: 'User'
-        },
-        postId:{
-            required: true,
-            type: ObjectId,
-            ref: 'Post'
+        subcomment:{
+            type:String,
+            required:true
         },
         isDeleted: {
             type: Boolean,
@@ -28,4 +27,4 @@ const likeSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-module.exports = mongoose.model("like", likeSchema)
+module.exports = mongoose.model("subcomment", subcommentSchema)

@@ -16,7 +16,19 @@ const PostSchema = new mongoose.Schema(
       max: 500,
     },
     img: {
-      type: String,
+      type: [String],
+    },
+    video: {
+      type: [String],
+    },
+    text: {
+      type: String
+    },
+    frindtag:{
+      type: [String]
+    },
+    hashtag:{
+      type: [String]
     },
     likes: {
       type: Number,

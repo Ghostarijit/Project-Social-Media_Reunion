@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const userModel = require("../model/userModel")
 const postModel = require("../model/postModel")
 const commentModel = require("../model/commentModel")
+const likeModel = require("../model/likeModel")
 const aws = require("aws-sdk")
 //const followersModel = require("../model/followersModel")
 aws.config.update({
@@ -27,8 +28,8 @@ let uploadFile = async (file) => {
             if (err) {
                 return reject({ "error": err })
             }
-            console.log(data)
-            console.log("file uploaded succesfully")
+            // console.log(data)
+            // console.log("file uploaded succesfully")
             return resolve(data.Location)
         })
 
@@ -48,7 +49,66 @@ const createPost = async function (req, res) {
 
         if (!data || Object.keys(data).length === 0) return res.status(400).send({ status: false, msg: "plz enter some data" })
 
-        let { userId, desc, img, likes, title, isDeleted } = data
+        let { userId, postId, desc, img, video, text, frindtag, hashtag, title, isDeleted } = data
+
+
+
+        let frindtags = frindtag.split(",")
+
+        const subtrim = frindtags.map(element => {
+            return element.trim()
+
+        })
+
+        let save = []
+
+        for(let i=0;i<subtrim.length;i++){
+            let user = await userModel.findById(subtrim[i])
+            save.push(user.username)
+        }
+        
+        data.frindtag = save
+        data.hashtag = hashtag.split(",")
+
+        var arr = []
+        var arr1 = []
+        let files = req.files
+        for (let j = 0; j < files.length; j++) {
+            if ((/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(files[j].originalname)) {
+                let uploadedFileURL = await uploadFile(files[j])
+
+                arr.push(uploadedFileURL)
+            }
+            else if ((/\.(mp4|mkv|webm|avi)$/i).test(files[j].originalname)) {
+                let uploadedFile = await uploadFile(files[j])
+                arr1.push(uploadedFile)
+            }
+        }
+
+        data.img = arr
+        data.video = arr1
+
+
+        let post = await postModel.create(data)
+
+
+        return res.status(201).send({ status: true, data: post })
+
+
+
+    } catch (err) {
+        res.status(500).send({ status: "error", error: err.message })
+    }
+}
+
+const updatePost = async function (req, res) {
+    try {
+        const data = req.body
+        //  data validation  
+
+        if (!data || Object.keys(data).length === 0) return res.status(400).send({ status: false, msg: "plz enter some data" })
+
+        let { userId, postId, desc, img,text, frindtag, hashtag, video } = data
 
 
         let user = await userModel.findById(userId)
@@ -62,18 +122,32 @@ const createPost = async function (req, res) {
 
 
         let files = req.files
-
-        let uploadedFileURL = await uploadFile(files[0])
-        data.img = uploadedFileURL
-
-
-        let post = await postModel.create(data)
+        for (let j = 0; j < files.length; j++) {
+            if ((/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(files[j].originalname)) {
+                var uploadedFileURL = await uploadFile(files[j])
 
 
+            }
+            else if ((/\.(mp4|mkv|webm|avi)$/i).test(files[j].originalname)) {
+                var uploadedFile = await uploadFile(files[j])
+
+            }
+        }
+
+
+        const updatepost = await postModel.findOneAndUpdate({ _id: postId?.trim(), userId: userId }, {
+
+            $addToSet: { img: uploadedFileURL, video: uploadedFile,frindtag:frindtag,hashtag:hashtag },
+
+            $set: { desc: desc ,text:text}
+
+        }, { new: true })
 
 
 
-        return res.status(201).send({ status: true, data: post })
+
+
+        return res.status(201).send({ status: true, data: `your post is successfully upadted,post is ${updatepost}` })
 
 
 
@@ -81,8 +155,6 @@ const createPost = async function (req, res) {
         res.status(500).send({ status: "error", error: err.message })
     }
 }
-
-
 
 const GetPostById = async function (req, res) {
     try {
@@ -98,7 +170,7 @@ const GetPostById = async function (req, res) {
 
         let user = await commentModel.find({ postId: postId, isDeleted: false }).count()
 
-        
+
         let Doc = {
             post: up,
             commentNo: user
@@ -127,16 +199,16 @@ const GetAllPost = async function (req, res) {
         //  data validation  
 
 
-        
-
-
-        let up = await postModel.find({userId: userId, isDeleted: false })
 
 
 
-         
+        let up = await postModel.find({ userId: userId, isDeleted: false })
 
-       
+
+
+
+
+
 
 
 
@@ -151,6 +223,43 @@ const GetAllPost = async function (req, res) {
 }
 
 
+const GetAllPostWitchILiked = async function (req, res) {
+    try {
+        const userId = req.params.userId
+        //  data validation  
+
+
+
+
+
+
+
+        var arr = []
+
+        let up = await likeModel.find({ userId: userId, isDeleted: false })
+
+        for (let i = 0; i < up.length; i++) {
+
+
+            let post = await postModel.findOne({ _id: Pup[i].postId })
+
+            if (post.userId != userId) {
+                arr.push(post)
+            }
+
+        }
+
+
+
+        return res.status(201).send({ status: true, data: `All post you liked Except your's ${arr}` })
+
+
+
+    } catch (err) {
+        res.status(500).send({ status: "error", error: err.message })
+    }
+}
+
 
 
 const DeletePost = async function (req, res) {
@@ -163,9 +272,9 @@ const DeletePost = async function (req, res) {
 
 
 
-        let up = await postModel.findOneAndUpdate({_id:postId,userId:userId}, {
+        let up = await postModel.findOneAndUpdate({ _id: postId, userId: userId }, {
 
-            $set: { isDeleted: true}
+            $set: { isDeleted: true }
 
         }, { new: true })
 
@@ -175,10 +284,10 @@ const DeletePost = async function (req, res) {
 
         // authorization
         if (token != userId) {
-         return res.status(403).send({ status: false, msg: "You are not authorized to access this data" })
+            return res.status(403).send({ status: false, msg: "You are not authorized to access this data" })
         }
 
-       
+
 
 
 
@@ -192,6 +301,33 @@ const DeletePost = async function (req, res) {
     }
 }
 
+const GetPostEvery5Sec = async function (req, res) {
+    try {
+
+        const userId = req.params.userId
+
+
+        let token = req["userId"]
+
+        // authorization
+        if (token != userId) {
+            return res.status(403).send({ status: false, msg: "You are not authorized to access this data" })
+        }
+
+
+        let post = await postModel.find().sort({ createdAt: 1 }).limit(10)
+
+        setInterval(() => {
+
+            res.status(201).send({ status: true, data: post })
+
+        }, 5000)
+
+
+    } catch (err) {
+        res.status(500).send({ status: "error", error: err.message })
+    }
+}
 
 
 
@@ -202,4 +338,10 @@ module.exports.GetPostById = GetPostById
 module.exports.GetAllPost = GetAllPost
 
 module.exports.DeletePost = DeletePost
+
+module.exports.GetAllPostWitchILiked = GetAllPostWitchILiked
+
+module.exports.updatePost = updatePost
+
+module.exports.GetPostEvery5Sec = GetPostEvery5Sec
 

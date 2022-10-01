@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema(
             require: true,
             min: 3,
             max: 20,
-            unique: true,
+            
         },
         email: {
             type: String,
@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema(
         password: {
             type: String,
             required: true,
-            min: 6,
+            min: 8,
         },
         profilePicture: {
             type: String,
@@ -32,14 +32,14 @@ const UserSchema = new mongoose.Schema(
             default: "",
         },
         followers: {
-            
+
             type: Number,
-            
+
         },
         followings: {
-           
+
             type: Number
-          
+
         },
         isAdmin: {
             type: Boolean,
@@ -53,12 +53,20 @@ const UserSchema = new mongoose.Schema(
             type: String,
             max: 50,
         },
+        age: {
+            type: Number
+        },
+        gender: {
+            type: String,
+            enum: ["male", "female", "lgbtqia"],
+        },
         from: {
             type: String,
             max: 50,
         },
         relationship: {
             type: String,
+            require:true,
             enum: ["Single", "complicated", "married"],
         },
         isDeleted: {
